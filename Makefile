@@ -8,7 +8,7 @@ all: msg main
 msg:
 	@echo --- START COMPILATION ---
 
-main: main.cpp $(shell ls *.h) Particle.o Geometry.o tga.o model.o
+main: main.cpp $(shell ls *.h) $(shell ls *.hpp) Particle.o Geometry.o tga.o model.o
 	${CXX} -O0 -g main.cpp Particle.o Geometry.o tga.o model.o ${CXXFLAGS} -o main
 
 Geometry.o: Geometry.cpp Geometry.h

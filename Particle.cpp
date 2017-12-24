@@ -103,6 +103,11 @@ void Particle::setFixed(bool fixed)
 	m_fixed = fixed;
 }
 
+void Particle::setRadius(float radius)
+{
+  m_radius = radius;
+}
+
 //getters
 glm::vec3 Particle::getCurrentPosition() const
 {
@@ -137,6 +142,10 @@ float Particle::getLifetime() const
 float Particle::getMass() const
 {
 	return m_mass;
+}
+float Particle::getRadius() const
+{
+	return m_radius;
 }
 
 bool Particle::isFixed() const

@@ -66,6 +66,8 @@ public:
   void setState(int state, float delay);
   void setPath( const std::string& strPath );
 
+  CalModel* getCal3DModel() {return m_calModel;}
+
 /* DEBUG-CODE
   struct
   {

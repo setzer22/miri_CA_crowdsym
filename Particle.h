@@ -21,6 +21,7 @@ public:
 	void setVelocity(glm::vec3 vel);
 	void setForce(const float& x, const float& y, const float& z);
 	void setForce(glm::vec3 force);
+	void setRadius(float radius);
 	void setBouncing(float bouncing);
 	void setLifetime(float lifetime);
 	void setFixed(bool fixed);
@@ -34,13 +35,13 @@ public:
 	float getBouncing() const;
 	float getLifetime() const;
   float getMass() const;
+  float getRadius() const;
 	bool isFixed() const;
 
 	//other
 	void addForce(glm::vec3 force);
 	void addForce(const float& x, const float& y, const float& z);
 	void updateParticle(const float& dt, UpdateMethod method = UpdateMethod::EulerOrig);
-
 
 private:
 	glm::vec3 m_currentPosition;
@@ -52,6 +53,7 @@ private:
 	float m_lifetime;
   float m_mass;
 	bool  m_fixed;
+  float m_radius;
 
 };
 
