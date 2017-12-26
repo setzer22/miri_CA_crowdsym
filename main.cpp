@@ -233,6 +233,20 @@ int main() {
 
           bool collided = false;
 
+          // Collision with other characters
+          for (int cha = 0; cha < particles.size; ++cha) {
+            if (cha == i) continue;
+
+            Particle other = particles[cha];
+
+            if(glm::distance(other.getCurrentPosition(), p.getCurrentPosition()) < other.getRadius() + p.getRadius()) {
+              glm::vec3 midpoint = 0.5f * (other.getCurrentPosition() + p.getCurrentPosition());
+              glm::vec3 correction_dir = glm::normalize(other.getCurrentPosition() - midpoint);
+              particles[cha].setPosition(other.getCurrentPosition() + correction_dir * other.getRadius());
+              particles[i].setPosition(p.getCurrentPosition() - correction_dir * p.getRadius());
+            }
+          }
+
           // Collision with outer walls
           for (int pl = 0; !collided && pl < num_planes; ++pl) {
             //float prev_distance = get_distance_to_plane(i, pl);
@@ -245,10 +259,11 @@ int main() {
               float d = planes[pl].dconst;
               float e = p.getBouncing();
 
-              //particles[i].setPosition(pos - (1+e)*(glm::dot(n,pos) + d + p.getRadius())*n);
+
               particles[i].setVelocity(vel - (1+e)*(glm::dot(n,vel))*n);
 
-              set_distance_to_plane(i, pl, -curr_distance+p.getRadius()+0.001);
+              //if(curr_distance > 0) {particles[i].setPosition(pos + glm::normalize(n) * (p.getRadius() - curr_distance));}
+              //else {particles[i].setPosition(pos - glm::normalize(n) * (p.getRadius() + curr_distance));}
 
             }
           }
@@ -256,18 +271,19 @@ int main() {
           // Collision with obstacles
           for (int tri = 0; !collided && tri < geom_triangles.size; ++tri) {
             Triangle triangle = geom_triangles[tri];
-            float curr_distance = abs(triangle.plane.distPoint2Plane(p.getCurrentPosition()));
+            float curr_distance = triangle.plane.distPoint2Plane(p.getCurrentPosition());
             bool inside = triangle.isInside(p.getCurrentPosition());
 
-            if(curr_distance < p.getRadius() and inside) {
+            if(abs(curr_distance) < p.getRadius() and inside) {
+              collided = true;
+
               glm::vec3 n = triangle.plane.normal;
               float d = triangle.plane.dconst;
               float e = p.getBouncing();
 
-              //particles[i].setPosition(pos - (1+e)*(glm::dot(n,pos) + d + p.getRadius())*n);
-              particles[i].setVelocity(vel - (1+e)*(glm::dot(n,vel))*n);
+              if(curr_distance > 0) {particles[i].setPosition(pos + glm::normalize(n) * (p.getRadius() - curr_distance));}
+              else {particles[i].setPosition(pos - glm::normalize(n) * (p.getRadius() + curr_distance));}
 
-              //set_distance_to_plane(i, , -curr_distance+p.getRadius()+0.001);
             }
           }
 
