@@ -23,6 +23,7 @@
 #include "Gizmo.h"
 #include "Texture.h"
 #include "Animator.hpp"
+#include "Navigation.hpp"
 
 #include <random>
 #define rand01() ((float)std::rand()/RAND_MAX)
@@ -30,7 +31,7 @@
 #define PI 3.1415926535
 
 const float box_size = 25.0f;
-const int num_particles = 5;
+const int num_particles = 2;
 const int num_planes = 4;
 const int num_spheres = 1;
 const int num_triangles = 0;
@@ -54,14 +55,14 @@ float get_distance_to_tri_plane(int particle_idx, int tri_plane_idx) {return dis
 void set_distance_to_tri_plane(int particle_idx, int tri_plane_idx, float value) {dist_to_tri_plane[particle_idx][tri_plane_idx] = value;}
 
 Particle init_particle() {
-    Particle p(0, 0, 0); //initial position of the particle
-    p.setLifetime(1000000);//(rand01()*10.0f+10);
-    p.setBouncing(1.0f);
-    p.setMass(1.0f);
-    p.setRadius(1.0f);
-    glm::vec3 vel = glm::normalize(glm::vec3(2*(rand01()-0.5), 2*(rand01()-0.5), 0.0f)) * base_particle_velocity;
-    p.setVelocity(vel);
-    return p;
+  Particle p(10*rand01(), 10*rand01(), 0); //initial position of the particle
+  p.setLifetime(1000000);//(rand01()*10.0f+10);
+  p.setBouncing(1.0f);
+  p.setMass(1.0f);
+  p.setRadius(1.0f);
+  //glm::vec3 vel = glm::normalize(glm::vec3(2*(rand01()-0.5), 2*(rand01()-0.5), 0.0f)) * base_particle_velocity;
+  p.setVelocity(glm::vec3(0,0,0));
+  return p;
 }
 
 glm::vec2 camera_pos(0.0f, 0.0f);
@@ -78,6 +79,7 @@ int main() {
 
     auto models = alloc_array<Model*>(num_particles);
     auto animators = alloc_array<animator::Animator>(num_particles);
+    auto navigators = alloc_array<navigation::Navigator>(num_particles);
     for (int i = 0; i < num_particles; ++i) {
       auto* m = new Model();
       models[i] = m;
@@ -87,6 +89,23 @@ int main() {
 
       animator::Animator a;
       animators[i] = a;
+
+      navigation::Navigator n;
+      if (i == 1) {
+        n.waypoints.push_back(navigation::Waypoint(12,11));
+        n.waypoints.push_back(navigation::Waypoint(7,9));
+        n.waypoints.push_back(navigation::Waypoint(7,3));
+        n.waypoints.push_back(navigation::Waypoint(19,0));
+        n.waypoints.push_back(navigation::Waypoint(12,11));
+      } else {
+        n.waypoints.push_back(navigation::Waypoint(12,12));
+        n.waypoints.push_back(navigation::Waypoint(7,9));
+        n.waypoints.push_back(navigation::Waypoint(7,3));
+        n.waypoints.push_back(navigation::Waypoint(12,3));
+        n.waypoints.push_back(navigation::Waypoint(12,9));
+        n.waypoints.push_back(navigation::Waypoint(12,12));
+      }
+      navigators[i] = n;
     }
 
 
@@ -206,14 +225,14 @@ int main() {
               printf("Speed: %f\n", base_particle_velocity);
               base_particle_velocity += 0.25f/4.0f;
               if (base_particle_velocity >= 20) {base_particle_velocity = 20;}
-              particles[i].setVelocity(glm::normalize(particles[i].getVelocity())*base_particle_velocity);
+              //particles[i].setVelocity(glm::normalize(particles[i].getVelocity())*base_particle_velocity);
             }
           } else if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_j) {
             for (int i = 0; i < particles.size; ++i) {
               printf("Speed: %f\n", base_particle_velocity);
               base_particle_velocity = base_particle_velocity - 0.25f/4.0f;
               if (base_particle_velocity <= 0) {base_particle_velocity = 0.0001;}
-              particles[i].setVelocity(glm::normalize(particles[i].getVelocity())*base_particle_velocity);
+              //particles[i].setVelocity(glm::normalize(particles[i].getVelocity())*base_particle_velocity);
             }
           }
 
@@ -224,6 +243,7 @@ int main() {
 
         // Physics loop
         for (int i = 0; i < num_particles; ++i) {
+          navigation::update(navigators[i], particles, i);
           particles[i].updateParticle(dt, Particle::UpdateMethod::EulerSemi);
 
           Particle p = particles[i];
@@ -260,10 +280,10 @@ int main() {
               float e = p.getBouncing();
 
 
-              particles[i].setVelocity(vel - (1+e)*(glm::dot(n,vel))*n);
+              //particles[i].setVelocity(vel - (1+e)*(glm::dot(n,vel))*n);
 
-              //if(curr_distance > 0) {particles[i].setPosition(pos + glm::normalize(n) * (p.getRadius() - curr_distance));}
-              //else {particles[i].setPosition(pos - glm::normalize(n) * (p.getRadius() + curr_distance));}
+              if(curr_distance > 0) {particles[i].setPosition(pos + glm::normalize(n) * (p.getRadius() - curr_distance));}
+              else {particles[i].setPosition(pos - glm::normalize(n) * (p.getRadius() + curr_distance));}
 
             }
           }
@@ -347,13 +367,13 @@ int main() {
           glTranslatef(pos.x, pos.y, pos.z);
           glScalef(renderScale, renderScale, renderScale);
 
-          glm::vec3 y = -glm::normalize(vel);
-          glm::vec3 z = glm::vec3(0,0,1);
-          glm::vec3 x = glm::cross(y, z);
-
-          float data[] = {x.x, x.y, x.z,0,y.x,y.y,y.z,0,z.x,z.y,z.z,0,0,0,0,1};
-          glMultMatrixf(&data[0]);
-
+          if (glm::length(vel) >= 0.0001f) {
+            glm::vec3 y = -glm::normalize(vel);
+            glm::vec3 z = glm::vec3(0,0,1);
+            glm::vec3 x = glm::cross(y, z);
+            float data[] = {x.x, x.y, x.z,0,y.x,y.y,y.z,0,z.x,z.y,z.z,0,0,0,0,1};
+            glMultMatrixf(&data[0]);
+          }
           //static float the_angle = 0;
           //the_angle += 10*dt;
 

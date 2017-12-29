@@ -1,4 +1,5 @@
 #include "Particle.h"
+#include <stdio.h>
 
 
 Particle::Particle()
@@ -6,7 +7,7 @@ Particle::Particle()
 }
 
 Particle::Particle(const float& x, const float& y, const float& z) :
-  m_previousPosition(0, 0, 0), m_velocity(0, 0, 0), m_force(0, 0, 0), m_bouncing(1), m_lifetime(50), m_mass(1), m_fixed(false)
+  m_previousPosition(0, 0, 0), m_force(0, 0, 0), m_velocity(0, 0, 0), m_bouncing(1), m_lifetime(50), m_mass(1), m_fixed(false)
 {
   m_previousPosition.x = x;
   m_previousPosition.y = y;
@@ -169,7 +170,9 @@ void Particle::updateParticle(const float& dt, UpdateMethod method)
 		case UpdateMethod::EulerSemi:
 		{
 			m_previousPosition = m_currentPosition;
+      //printf("vel: %f, %f, %f\n", m_velocity.x, m_velocity.y, m_velocity.z);
 			m_velocity += dt*m_force/m_mass;
+      //printf("pos: %f, %f, %f\n", m_currentPosition.x, m_currentPosition.y, m_currentPosition.z);
 			m_currentPosition += m_velocity*dt;
 		}
 			break;
