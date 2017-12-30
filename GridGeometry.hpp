@@ -37,7 +37,9 @@ namespace grid_geometry {
         for (int i = 0; i < 2; ++i) {
           GridPoint n = GridPoint(current.first + neighbours[dir][i][0],
                                   current.second + neighbours[dir][i][1]);
-          if (!contains(visited, n) and grid[n.first][n.second] == grid_renderer::OBSTACLE) {
+          if (n.first >= 0 and n.first <= grid.size and
+              n.second >= 0 and n.second <= grid.size and
+              !contains(visited, n) and grid[n.first][n.second] == grid_renderer::OBSTACLE) {
             visited.insert(n);
             get_connected_obstacles(grid, obstacles, n, dir, visited);
           }

@@ -27,10 +27,18 @@ namespace navigation {
 
     Waypoint(int i, int j) {
       this->i = i;
-      this->j = i;
+      this->j = j;
       this->center = grid_to_space(i,j);
     }
   };
+
+  bool operator==(const Waypoint& lhs, const Waypoint& rhs) {
+    return lhs.i == rhs.i and lhs.j == rhs.j;
+  }
+
+  bool operator!=(const Waypoint& lhs, const Waypoint& rhs) {
+    return lhs.i != rhs.i or lhs.j != rhs.j;
+  }
 
   struct Navigator {
     std::vector<Waypoint> waypoints;
@@ -73,8 +81,8 @@ namespace navigation {
         float max_repulsion = 100000.0;
         float offset = (1.0/max_repulsion) - 2.20f;
         float curve = 1.5f/(d + offset);
-        printf("curve:%f\n",curve);
-        printf("d:%f\n",d);
+        //printf("curve:%f\n",curve);
+        //printf("d:%f\n",d);
         avoid += away * curve + right * curve * 0.1f;
       }
     }

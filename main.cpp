@@ -24,6 +24,7 @@
 #include "Texture.h"
 #include "Animator.hpp"
 #include "Navigation.hpp"
+#include "Pathfinding.hpp"
 
 #include <random>
 #define rand01() ((float)std::rand()/RAND_MAX)
@@ -31,7 +32,7 @@
 #define PI 3.1415926535
 
 const float box_size = 25.0f;
-const int num_particles = 2;
+const int num_particles = 1;
 const int num_planes = 4;
 const int num_spheres = 1;
 const int num_triangles = 0;
@@ -55,7 +56,7 @@ float get_distance_to_tri_plane(int particle_idx, int tri_plane_idx) {return dis
 void set_distance_to_tri_plane(int particle_idx, int tri_plane_idx, float value) {dist_to_tri_plane[particle_idx][tri_plane_idx] = value;}
 
 Particle init_particle() {
-  Particle p(10*rand01(), 10*rand01(), 0); //initial position of the particle
+  Particle p(-24, -24, 0); //initial position of the particle
   p.setLifetime(1000000);//(rand01()*10.0f+10);
   p.setBouncing(1.0f);
   p.setMass(1.0f);
@@ -77,6 +78,10 @@ int main() {
     // ==================
     __default_memory_allocator = mk_allocator(256*1024*1024);
 
+
+    // Load the grid from file
+    auto grid = grid_renderer::read_from_file("./map.dat");
+
     auto models = alloc_array<Model*>(num_particles);
     auto animators = alloc_array<animator::Animator>(num_particles);
     auto navigators = alloc_array<navigation::Navigator>(num_particles);
@@ -91,20 +96,7 @@ int main() {
       animators[i] = a;
 
       navigation::Navigator n;
-      if (i == 1) {
-        n.waypoints.push_back(navigation::Waypoint(12,11));
-        n.waypoints.push_back(navigation::Waypoint(7,9));
-        n.waypoints.push_back(navigation::Waypoint(7,3));
-        n.waypoints.push_back(navigation::Waypoint(19,0));
-        n.waypoints.push_back(navigation::Waypoint(12,11));
-      } else {
-        n.waypoints.push_back(navigation::Waypoint(12,12));
-        n.waypoints.push_back(navigation::Waypoint(7,9));
-        n.waypoints.push_back(navigation::Waypoint(7,3));
-        n.waypoints.push_back(navigation::Waypoint(12,3));
-        n.waypoints.push_back(navigation::Waypoint(12,9));
-        n.waypoints.push_back(navigation::Waypoint(12,12));
-      }
+      n.waypoints = pathfinding::basic_a_star(grid, navigation::Waypoint(0,0), navigation::Waypoint(16,14));
       navigators[i] = n;
     }
 
@@ -184,9 +176,6 @@ int main() {
         set_distance_to_plane(i,j, planes[j].distPoint2Plane(particles[i].getCurrentPosition()));
       }
     }
-
-    // Load the grid from file
-    auto grid = grid_renderer::read_from_file("./map.dat");
 
     // Collision geometry (Triangles)
     Array<Triangle> geom_triangles = grid_geometry::make_planes(grid);

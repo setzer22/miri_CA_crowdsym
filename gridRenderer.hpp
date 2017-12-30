@@ -14,16 +14,18 @@ namespace grid_renderer {
     EMPTY,
     OBSTACLE,
     HIGHLIGHTED,
+    HIGHLIGHTED2,
     SELECTED
   };
 
   typedef Array<Array<grid_renderer::GridCell> > Grid;
 
-  float grid_cell_to_color[4][3] =
+  float grid_cell_to_color[5][3] =
     {{0.2f, 0.4f, 0.2f}, //EMPTY
      {0.7f, 0.1f, 0.1f}, //OBSTACLE
-     {0.1f, 0.7f, 0.1f}, //HIGHLIGHTED
-     {0.1f, 0.1f, 0.7f}}; //SELECTED
+     {0.1f, 0.1f, 0.7f}, //HIGHLIGHTED
+     {0.7f, 0.1f, 0.7f}, //HIGHLIGHTED2
+     {0.1f, 0.7f, 0.7f}}; //SELECTED
 
   Grid read_from_file(const char* path) {
     std::string line;
