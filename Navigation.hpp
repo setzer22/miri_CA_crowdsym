@@ -11,6 +11,9 @@
 #include "Array.hpp"
 #include "Particle.h"
 
+#include <random>
+#define rand01() ((float)std::rand()/RAND_MAX)
+
 namespace navigation {
 
   glm::vec2 grid_to_space(int i, int j) {
@@ -67,7 +70,7 @@ namespace navigation {
     glm::vec3 desired_velocity = glm::normalize(center - p.getCurrentPosition()) * max_speed;
     glm::vec3 steer = desired_velocity - p.getVelocity();
 
-    float avoid_radius = 10.0f;
+    float avoid_radius = 5.0f;
     glm::vec3 avoid(0,0,0);
     for (int i = 0; i < particles.size; ++i) {
       if (i == p_idx) continue;
@@ -78,8 +81,9 @@ namespace navigation {
       float d = glm::distance(p.getCurrentPosition(), other.getCurrentPosition());
       if (d <= avoid_radius) {
         glm::vec3 away = (p.getCurrentPosition() - other.getCurrentPosition());
-        float max_repulsion = 100000.0;
-        float offset = (1.0/max_repulsion) - 2.20f;
+        float max_repulsion = 100.0f;
+        float repulsion_radius = 2.2f;
+        float offset = (1.0/max_repulsion) - repulsion_radius;
         float curve = 1.5f/(d + offset);
         //printf("curve:%f\n",curve);
         //printf("d:%f\n",d);
@@ -91,6 +95,8 @@ namespace navigation {
     //printf("sf: %f, %f, %f\n", seek_force.x, seek_force.y, seek_force.z);
     //printf("nav_i: %d\n", nav.current_waypoint);
 
-    particles[p_idx].setVelocity(p.getVelocity() + steer * 0.10f + avoid * 0.1f);
+    float avoid_random_coef = rand01()*0.05;
+
+    particles[p_idx].setVelocity(p.getVelocity() + steer * 0.10f + avoid * (0.1f + avoid_random_coef));
   }
 }

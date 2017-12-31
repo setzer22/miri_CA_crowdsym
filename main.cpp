@@ -32,19 +32,10 @@
 #define PI 3.1415926535
 
 const float box_size = 25.0f;
-const int num_particles = 1;
+const int num_particles = 9;
 const int num_planes = 4;
-const int num_spheres = 1;
-const int num_triangles = 0;
-const float gravity = 9.8f;
-const float particle_mass = 0.1f;
 
 float base_particle_velocity = 6.0f;
-
-// Spring stuff
-const float k_e = 500.0f; // Elasticity constant
-const float k_d = 0.5f; // Elasticity damping constant
-const float L = 0.5; // Inter-particle spring length
 
 float dist_to_plane[num_particles][num_planes];
 float get_distance_to_plane(int particle_idx, int plane_idx) {return dist_to_plane[particle_idx][plane_idx];}
@@ -67,7 +58,23 @@ Particle init_particle() {
 }
 
 glm::vec2 camera_pos(0.0f, 0.0f);
-glm::vec3 camera_offset(0.0f, -60.0f, 30.0f);
+glm::vec3 camera_offset(0.0f, 1.0f, 80.0f);
+
+glm::vec3 grid_to_world(Waypoint w) {
+  float cell_size = 2*box_size/20.0;
+  glm::vec3 origin(-25, -25, 0);
+  glm::vec3 half(0.5*cell_size, 0.5*cell_size, 0);
+  return origin + half + glm::vec3(w.j, w.i, 0) * cell_size;
+}
+
+navigation::Waypoint world_to_grid(glm::vec3 pos) {
+  float cell_size = 2*box_size/20.0;
+  glm::vec3 origin(-25, -25, 0);
+  int pos_i = (int)((pos.y - origin.y) / cell_size);
+  int pos_j = (int)((pos.x - origin.x) / cell_size);
+
+  return navigation::Waypoint(pos_i, pos_j);
+}
 
 int main() {
 
@@ -78,26 +85,56 @@ int main() {
     // ==================
     __default_memory_allocator = mk_allocator(256*1024*1024);
 
-    // Load the grid from file
-    auto grid = grid_renderer::read_from_file("./map.dat");
+    float dt = 0.01f;  //simulation time
+    float initial_time = 0.0f;
 
+    // Load the grid from file
+    auto grid = grid_renderer::read_from_file("./map_2.dat");
+
+    // =====================
+    // CHARACTERS DEFINITION
+    // =====================
+    int paths[num_particles][2][2] = {
+      //origin, destination
+      {{0,0},{7,10}},
+      {{0,1},{18,19}},
+      {{1,1},{5,13}},
+      {{1,3},{7,2}},
+      {{1,4},{9,10}},
+      {{2,4},{15,0}},
+      {{0,5},{1,18}},
+      {{1,6},{15,4}},
+      {{2,5},{12,9}}
+    };
+
+    auto particles = alloc_array<Particle>(num_particles);
     auto models = alloc_array<Model*>(num_particles);
     auto animators = alloc_array<animator::Animator>(num_particles);
     auto navigators = alloc_array<navigation::Navigator>(num_particles);
     for (int i = 0; i < num_particles; ++i) {
-      auto* m = new Model();
-      models[i] = m;
-      models[i]->setPath("./cally/data/paladin/");
-      models[i]->onInit("./cally/data/paladin.cfg");
-      models[i]->setState(Model::STATE_MOTION, 0.3f);
+      particles[i] = init_particle();
 
-      animator::Animator a;
-      animators[i] = a;
+      /* Model */ {
+        auto* m = new Model();
+        models[i] = m;
+        models[i]->setPath("./cally/data/paladin/");
+        models[i]->onInit("./cally/data/paladin.cfg");
+        models[i]->setState(Model::STATE_MOTION, 0.3f);
+      }
 
-      navigation::Navigator n;
-      n.waypoints = pathfinding::bidirectional_search(grid, navigation::Waypoint(0,0), navigation::Waypoint(16,14));
-      //n.waypoints = pathfinding::basic_a_star(grid, navigation::Waypoint(0,0), navigation::Waypoint(16,14));
-      navigators[i] = n;
+      /* Animator */ {
+        animator::Animator a;
+        animators[i] = a;
+      }
+
+      /* Navigator */ {
+        Waypoint origin(paths[i][0][0], paths[i][0][1]);
+        Waypoint destination(paths[i][1][0], paths[i][1][1]);
+        navigation::Navigator n;
+        n.waypoints = pathfinding::basic_a_star(grid, origin, destination);
+        particles[i].setPosition(grid_to_world(origin));
+        navigators[i] = n;
+      }
     }
 
 
@@ -118,13 +155,6 @@ int main() {
     //  SIMULATION STUFF
     // ==================
 
-    // Particles Definition
-    float dt = 0.01f;  //simulation time
-    float initial_time = 0.0f;
-    Array<Particle> particles = alloc_array<Particle>(num_particles);
-    for (int i = 0; i < particles.size; ++i) {
-      particles[i] = init_particle();
-    }
 
     // Planes definition
     plane_renderer::init();
@@ -228,6 +258,23 @@ int main() {
           /*else if (e.type == SDL_KEYDOWN && !e.key.repeat && e.key.keysym.sym == SDLK_w) {
             camera_pos.y += 100*dt;
             }*/
+        }
+
+        // Clear the grid debug data
+        for (int i = 0; i < grid.size; ++i) {
+          for (int j = 0; j < grid.size; ++j) {
+            if (grid[i][j] != grid_renderer::OBSTACLE) {
+              grid[i][j] = grid_renderer::EMPTY;
+            }
+          }
+        }
+
+        // AI Loop, recompute path 
+        for (int i = 0; i < num_particles; ++i) {
+          Waypoint pw = world_to_grid(particles[i].getCurrentPosition());
+          //printf("Particle %d (%f,%f) at grid point (%d, %d)\n", i, particles[i].getCurrentPosition().x, particles[i].getCurrentPosition().y, pw.i, pw.j);
+          Waypoint destination(paths[i][1][0], paths[i][1][1]);
+          navigators[i].waypoints = pathfinding::basic_a_star(grid, pw, destination);
         }
 
         // Physics loop

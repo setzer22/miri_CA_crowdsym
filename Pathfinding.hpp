@@ -54,18 +54,17 @@ namespace pathfinding {
     if (neigh_t == NEIGH8) {
       for(int n = 0; n < 8; ++n) {
         int ni = neighborhood_8[n][0];
-          int nj = neighborhood_8[n][1];
-          //printf("Pushing neighbour (%d,%d)\n", ni, nj);
-          if(w.i+ni < grid.size and w.i+ni >= 0 and
-             w.j+nj < grid.size and w.j+nj >= 0 and
-             grid[w.i+ni][w.j+nj] != OBSTACLE) {
-            neighs.push_back(Waypoint(w.i+ni, w.j+nj));
-          }
+        int nj = neighborhood_8[n][1];
+        //printf("Pushing neighbour (%d,%d)\n", ni, nj);
+        if(w.i+ni < grid.size and w.i+ni >= 0 and
+           w.j+nj < grid.size and w.j+nj >= 0 and
+           grid[w.i+ni][w.j+nj] != OBSTACLE) {
+          neighs.push_back(Waypoint(w.i+ni, w.j+nj));
+        }
       }
     }
     else if (neigh_t == NEIGH4) {
       for(int n = 0; n < 8; ++n) {
-        
         int ni = neighborhood_4[n][0];
         int nj = neighborhood_4[n][1];
         //printf("Pushing neighbour (%d,%d)\n", ni, nj);
@@ -78,7 +77,6 @@ namespace pathfinding {
     }
     return neighs;
   };
-  
   typedef std::pair<Waypoint, Waypoint> WaypointPair;
 
   std::vector<Waypoint> remove_unnecesary_waypoints(const std::vector<Waypoint>& waypoints, Grid& grid) {
@@ -175,7 +173,7 @@ namespace pathfinding {
           float d = glm::distance(glm::vec2(fw_current.i, fw_current.j), glm::vec2(w.i, w.j));
           float new_cost = fw_cost_so_far[fw_current.i][fw_current.j]+d;
           if (new_cost < fw_cost_so_far[w.i][w.j]) {
-            grid[w.i][w.j] = HIGHLIGHTED;
+            //grid[w.i][w.j] = HIGHLIGHTED;
             fw_cost_so_far[w.i][w.j] = new_cost;
             fw_frontier.push(w);
             fw_came_from[w.i][w.j] = fw_current;
@@ -187,7 +185,7 @@ namespace pathfinding {
           float d = glm::distance(glm::vec2(bw_current.i, bw_current.j), glm::vec2(w.i, w.j));
           float new_cost = bw_cost_so_far[bw_current.i][bw_current.j]+d;
           if (new_cost < bw_cost_so_far[w.i][w.j]) {
-            grid[w.i][w.j] = HIGHLIGHTED2;
+            //grid[w.i][w.j] = HIGHLIGHTED2;
             bw_cost_so_far[w.i][w.j] = new_cost;
             bw_frontier.push(w);
             bw_came_from[w.i][w.j] = bw_current;
@@ -262,7 +260,7 @@ namespace pathfinding {
         float d = glm::distance(glm::vec2(current.i, current.j), glm::vec2(w.i, w.j));
         float new_cost = cost_so_far[current.i][current.j]+d;
         if (new_cost < cost_so_far[w.i][w.j]) {
-          grid[w.i][w.j] = HIGHLIGHTED;
+          //grid[w.i][w.j] = HIGHLIGHTED;
           cost_so_far[w.i][w.j] = new_cost;
           frontier.push(w);
           came_from[w.i][w.j] = current;
