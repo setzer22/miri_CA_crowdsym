@@ -6,7 +6,7 @@
 #include <string>
 #include <fstream>
 
-#include "Array.h"
+#include "Array.hpp"
 #include "Geometry.h"
 #include "gridRenderer.hpp"
 

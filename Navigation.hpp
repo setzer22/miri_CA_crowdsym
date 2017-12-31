@@ -8,7 +8,7 @@
 
 #include <vector>
 
-#include "Array.h"
+#include "Array.hpp"
 #include "Particle.h"
 
 namespace navigation {

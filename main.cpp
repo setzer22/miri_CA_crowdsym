@@ -8,10 +8,10 @@
 
 #include "glm/glm.hpp"
 #include "glm/gtx/rotate_vector.hpp"
-#include "Utils.h"
+#include "Utils.hpp"
 #include "StackTrace.h"
 #include "Allocator.h"
-#include "Array.h"
+#include "Array.hpp"
 #include "SDLUtilities.h"
 #include "Input.h"
 #include "Particle.h"
@@ -78,7 +78,6 @@ int main() {
     // ==================
     __default_memory_allocator = mk_allocator(256*1024*1024);
 
-
     // Load the grid from file
     auto grid = grid_renderer::read_from_file("./map.dat");
 
@@ -96,7 +95,8 @@ int main() {
       animators[i] = a;
 
       navigation::Navigator n;
-      n.waypoints = pathfinding::basic_a_star(grid, navigation::Waypoint(0,0), navigation::Waypoint(16,14));
+      n.waypoints = pathfinding::bidirectional_search(grid, navigation::Waypoint(0,0), navigation::Waypoint(16,14));
+      //n.waypoints = pathfinding::basic_a_star(grid, navigation::Waypoint(0,0), navigation::Waypoint(16,14));
       navigators[i] = n;
     }
 

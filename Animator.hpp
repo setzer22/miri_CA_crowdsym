@@ -8,7 +8,7 @@
 #include "global.h"
 
 #include "model.h"
-#include "Array.h"
+#include "Array.hpp"
 #include "Particle.h"
 #include "Geometry.h"
 

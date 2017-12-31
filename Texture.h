@@ -1,7 +1,7 @@
 #pragma once
 
 #include "tga.h"
-#include "Utils.h"
+#include "Utils.hpp"
 
 #include <SDL2/SDL_opengl.h>
 

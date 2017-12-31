@@ -6,7 +6,7 @@
 #include <string>
 #include <fstream>
 
-#include "Array.h"
+#include "Array.hpp"
 
 namespace grid_renderer {
 
@@ -15,16 +15,18 @@ namespace grid_renderer {
     OBSTACLE,
     HIGHLIGHTED,
     HIGHLIGHTED2,
+    HIGHLIGHTED3,
     SELECTED
   };
 
   typedef Array<Array<grid_renderer::GridCell> > Grid;
 
-  float grid_cell_to_color[5][3] =
+  float grid_cell_to_color[6][3] =
     {{0.2f, 0.4f, 0.2f}, //EMPTY
      {0.7f, 0.1f, 0.1f}, //OBSTACLE
      {0.1f, 0.1f, 0.7f}, //HIGHLIGHTED
      {0.7f, 0.1f, 0.7f}, //HIGHLIGHTED2
+     {0.7f, 0.7f, 0.1f}, //HIGHLIGHTED3
      {0.1f, 0.7f, 0.7f}}; //SELECTED
 
   Grid read_from_file(const char* path) {

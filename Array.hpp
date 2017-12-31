@@ -1,5 +1,10 @@
 #pragma once
 
+#include "Utils.hpp"
+#include "StackTrace.h"
+#include <stdlib.h>
+#include "Allocator.h"
+
 inline bool in_bounds(int i, int size) {
     return i >= 0 && i < size;
 }
